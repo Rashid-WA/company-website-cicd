@@ -22,13 +22,13 @@ jobs:
 
       - name: Copy Website Files to EC2
         run: |
-          scp -r \
-            index.html \
-            about.html \
-            contact.html \
-            css \
-            js \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/var/www/html/
+          scp -o StrictHostKeyChecking=no -r \
+          index.html \
+          about.html \
+          contact.html \
+          css \
+          js \
+          ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/var/www/html/
 
-      - name: Deployment Successful
-        run: echo "Website deployed successfully to EC2!"
+      - name: Deployment Complete
+        run: echo "Website deployed successfully!"
