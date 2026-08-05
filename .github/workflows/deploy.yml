@@ -16,13 +16,13 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Create Web Directory
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo mkdir -p /var/www/html
             sudo chown -R $USER:$USER /var/www/html
             sudo chmod -R 755 /var/www/html
@@ -31,9 +31,9 @@ jobs:
       - name: Deploy Website
         run: |
           scp -i ~/.ssh/id_rsa -r ./* \
-          ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+          ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/tmp/
 
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
             sudo cp -r /tmp/* /var/www/html/
           EOF
 
