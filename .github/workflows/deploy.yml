@@ -1,4 +1,4 @@
-name: Deploy Website to EC2
+name: Deploy Static Website to EC2
 
 on:
   push:
@@ -13,22 +13,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Configure SSH
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Copy Website Files to EC2
+      - name: Create Web Directory
         run: |
-          scp -o StrictHostKeyChecking=no -r \
-          index.html \
-          about.html \
-          contact.html \
-          css \
-          js \
-          ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/var/www/html/
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            sudo mkdir -p /var/www/html
+            sudo chown -R $USER:$USER /var/www/html
+            sudo chmod -R 755 /var/www/html
+          EOF
+
+      - name: Deploy Website
+        run: |
+          scp -i ~/.ssh/id_rsa -r ./* \
+          ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            sudo cp -r /tmp/* /var/www/html/
+          EOF
 
       - name: Deployment Complete
         run: echo "Website deployed successfully!"
